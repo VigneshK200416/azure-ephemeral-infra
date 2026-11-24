@@ -1,0 +1,8 @@
+# state and local Terraform data: never commit
+*.tfstate
+*.tfstate.*
+.terraform/
+crash.log
+# real ticket files hold subscription IDs; keep only the sample
+tickets/*.tfvars
+!tickets/sample-*.tfvars
