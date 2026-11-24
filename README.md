@@ -17,7 +17,7 @@ One tfvars file per ticket, one state blob per ticket.
 
 ## Daily use (PowerShell, project root)
     $env:ARM_ACCESS_KEY = "<storage key>"      # this terminal only, never in a file
-    $t = "296108"                              # set once, use everywhere below
+    $t = "111111"                              # set once, use everywhere below
     terraform init -reconfigure "-backend-config=key=$t.tfstate"
     terraform validate
     terraform plan  "-var-file=tickets/$t.tfvars"
@@ -62,9 +62,6 @@ a brand-new empty state key for a ticket that already exists in Azure: that fail
 4. Names include the map key. Add one resource type at a time and check the plan shows only the new resources.
 
 ## Known gaps
-- Windows image SKU `win11-26h2-pro` is not verified:
-  az vm image list-skus -l centralindia -p MicrosoftWindowsDesktop -f Windows-11 -o table
-- Management rule destination is "*": on a shared subnet one VM's rule also opens its port to the other VMs.
 - Backend uses the storage key for now. With AD approval: delete ARM_ACCESS_KEY, add `use_azuread_auth = true`
   to the backend block, give your group Storage Blob Data Contributor.
 - Not built: Git, CI/CD, destroy by deleting a file, weekly sweep, multi-subscription slices.
