@@ -1,5 +1,6 @@
 terraform {
   required_version = ">=1.4.0"
+  backend "azurerm" {}
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
@@ -9,7 +10,6 @@ terraform {
 }
 
 provider "azurerm" {
-  subscription_id = var.subscription_id
   features {}
 }
 
