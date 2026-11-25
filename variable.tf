@@ -64,7 +64,7 @@ variable "admin_password" {
 # One list for every ticket. Defined once here, passed down to nw and vm.
 variable "office_ips" {
   type    = list(string)
-  default = ["0.0.0.0/0"] # REPLACE with your real office IPs (dummy documentation address)
+  
 
   validation {
     condition     = length(var.office_ips) > 0
