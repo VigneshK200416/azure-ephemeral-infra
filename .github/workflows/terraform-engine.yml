@@ -1,0 +1,97 @@
+name: Terraform Engine
+
+on:
+  workflow_call:
+    inputs:
+      action:
+        description: 'The action to perform (plan, apply, destroy)'
+        required: true
+        type: string
+      var_file:
+        description: 'The path to the Terraform variable file'
+        required: true
+        type: string
+      state_key:
+        description: 'The key for the Terraform state file in the backend'
+        required: true
+        type: string
+      tf_state_resource_group:
+        description: 'The resource group where the Terraform state file is stored'
+        required: true
+        type: string
+      tf_state_storage_account:
+        description: 'The storage account where the Terraform state file is stored'
+        required: true
+        type: string
+      tf_state_container:
+        description: 'The container where the Terraform state file is stored'
+        required: true
+        type: string
+    secrets:
+      
+      ARM_CLIENT_ID:
+        description: 'The Azure service principal client ID'
+        required: true
+      ARM_SUBSCRIPTION_ID:
+        description: 'The Azure subscription ID'
+        required: true
+      ARM_TENANT_ID:
+        description: 'The Azure tenant ID'
+        required: true
+jobs:
+  OIDC-ENV:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    defaults:
+      run:
+        working-directory: runtime
+    env:
+      ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+      ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+      ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+      ARM_USE_OIDC: "true"
+      ARM_USE_AZUREAD: "true"
+
+    steps:
+      - name: Checkout private repo
+        uses: actions/checkout@v4
+        with:
+          path: config
+      - name: checkout public repo
+        uses: actions/checkout@v4
+        with:
+          path: runtime
+          ref: main
+          repository: VigneshK200416/azure-ephemeral-infra
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: "1.14.0"
+      - name: Terraform fmt
+        run: terraform fmt -check -recursive
+      - name: Terraform init
+        run: |
+            terraform init -input=false \
+              -backend-config="resource_group_name=${{ inputs.tf_state_resource_group }}" \
+              -backend-config="storage_account_name=${{ inputs.tf_state_storage_account }}" \
+              -backend-config="container_name=${{ inputs.tf_state_container }}" \
+              -backend-config="key=${{ inputs.state_key }}"
+      - name: Terraform validate
+        run: terraform validate
+      - name: Terraform plan
+        if: ${{ inputs.action == 'plan' }}
+        run: terraform plan -input=false -no-color -var-file="../config/${{ inputs.var_file }}"
+      - name: Terraform apply
+        if: ${{ inputs.action == 'apply' }}
+        run: terraform apply -input=false -auto-approve -no-color -var-file="../config/${{ inputs.var_file }}"
+      - name: Terraform destroy
+        if: ${{ inputs.action == 'destroy' }} 
+        run: terraform destroy -input=false -auto-approve -no-color -var-file="../config/${{ inputs.var_file }}"
+
+
+
+
+    
+      
